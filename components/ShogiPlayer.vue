@@ -253,6 +253,12 @@ export default {
       type: Function,
       default: null,
     },
+
+    // 反転ボタンを表示するか？
+    sp_controller_flip_button_show: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   components: {

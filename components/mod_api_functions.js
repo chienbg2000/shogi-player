@@ -37,10 +37,10 @@ export const mod_api_functions = {
       this.play_mode_xcontainer_seek_to(turn)
     },
 
-    // // 反転状態の設定
-    // api_flip_set(flag) {
-    //   this.mut_viewpoint = flag ? "white" : "black"
-    // },
+    // 反転状態の設定
+    api_flip_set(flag) {
+      this.mut_viewpoint = flag ? "white" : "black"
+    },
 
     // 視点を決める
     api_viewpoint_set(location_key) {

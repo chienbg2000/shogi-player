@@ -11,7 +11,7 @@
       b-icon(size="is-small" icon="chevron-right")
     button.button.last(ref="last" @click.stop.prevent="TheSp.api_turn_set_to_max({interactive: $event})")
       b-icon(size="is-small" icon="menu-right")
-  template(v-if="false")
+  template(v-if="TheSp.sp_controller_flip_button_show")
     button.button.flip(@click.stop.prevent="TheSp.viewpoint_flip_handle")
       b-icon(size="is-small" icon="swap-vertical")
 </template>

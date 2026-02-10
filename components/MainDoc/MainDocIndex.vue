@@ -23,6 +23,8 @@
     .container.is-fluid
       .title.is-4.mt-6 1. 再生モード
       .columns.is-centered
+        MainDocViewDemoWhite.is-10-tablet.is-8-desktop.is-6-widescreen
+      .columns.is-centered
         MainDocViewDemo1.is-10-tablet.is-8-desktop.is-6-widescreen
       .columns.mt-6
         MainDocViewDemo2
@@ -39,6 +41,7 @@
       .columns
         MainDocPlayDemo1
         MainDocPlayDemo2
+        MainDocPlayDemo7
       .columns
         MainDocPlayDemo3
         MainDocPlayDemo4
