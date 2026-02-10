@@ -18,6 +18,7 @@ import Vue from "vue"
 
 // Models
 import { Xcontainer       } from "./models/xcontainer.js"
+import { Soldier            } from "./models/soldier.js"
 import { Place            } from "./models/place.js"
 import { SfenParser       } from "./models/sfen_parser.js"
 import { KifParser        } from "./models/kif_parser.js"
@@ -147,7 +148,7 @@ export default {
     // ☗☖をタップしたときの挙動
     sp_location_click_behavior: {
       type: String,
-      default: "flip",
+      default: "nop",
       validator(value) { return ["flip", "nop"].includes(value) },
     },
 
@@ -507,6 +508,17 @@ export default {
         list.push(soldier.location.flip_if(this.fliped).position_key)
       }
 
+      const key = Place.fetch(xy).key
+      const info = this.check_highlight_info[key]
+      if (info) {
+        list.push(info)
+      }
+
+      const valid_move_class = this.lifted_piece_valid_moves_info[key]
+      if (valid_move_class) {
+        list.push(valid_move_class)
+      }
+
       // if (this.sp_board_cell_class_fn) {
       //   list = _.concat(list, this.sp_board_cell_class_fn(place))
       // }
@@ -588,6 +600,174 @@ export default {
 
     kifu_source() {
       return this.sp_body || this.init_preset_sfen || "position startpos"
+    },
+
+    check_highlight_info() {
+      const info = {}
+      if (!this.xcontainer) return info
+      if (!this.xcontainer.board) return info
+
+      this.Location.values.forEach(target_location => {
+        const king_soldier = this.xcontainer.board.king_find_by_location(target_location)
+        if (!king_soldier) return
+
+        const opponents = this.xcontainer.board.soldiers_by_location(target_location.flip)
+        const checkers = []
+        
+        opponents.forEach(soldier => {
+          if (this.xcontainer.board.reach_p(soldier, king_soldier.place)) {
+            checkers.push(soldier)
+          }
+        })
+
+        if (checkers.length > 0) {
+          // Highlight King
+          info[king_soldier.place.key] = "is_checked_king"
+
+          checkers.forEach(checker => {
+            // Highlight Checker
+            info[checker.place.key] = "is_checking_piece"
+
+            // Highlight Path (if sliding)
+            const cx = checker.place.x
+            const cy = checker.place.y
+            const kx = king_soldier.place.x
+            const ky = king_soldier.place.y
+            
+            const dx = kx - cx
+            const dy = ky - cy
+            
+            if (dx === 0 || dy === 0 || Math.abs(dx) === Math.abs(dy)) {
+              const sx = Math.sign(dx)
+              const sy = Math.sign(dy)
+              
+              let x = cx + sx
+              let y = cy + sy
+              // Loop until we reach King
+              while (x !== kx || y !== ky) {
+                info[[x, y].toString()] = "is_check_path"
+                x += sx
+                y += sy
+                if (Math.abs(x - cx) > 9 || Math.abs(y - cy) > 9) break // Safety
+              }
+            }
+          })
+        }
+      })
+      return info
+    },
+
+    lifted_piece_valid_moves_info() {
+      const info = {}
+      if (!this.lifted_p) return info
+
+      // From Board (盤上の駒を持っているとき)
+      if (this.origin_soldier1) {
+        const soldier = this.origin_soldier1
+        const board = this.xcontainer.board
+        
+        // Helper to check and add
+        const check_and_add = (x, y) => {
+           if (Place.xy_invalid_p(x, y)) return false
+           const place = Place.fetch([x, y])
+           const other = board.lookup(place)
+           
+           let is_valid = false
+           if (!other) {
+             is_valid = true
+           } else {
+             if (other.location !== soldier.location) {
+               is_valid = true
+             }
+             // Blocked by friend or enemy (stop ray)
+           }
+           
+           if (is_valid && this.sp_illegal_validate) {
+              // Check self check (自殺手)
+              if (board.move_then_king_capture_p(soldier, place)) {
+                is_valid = false
+              }
+           }
+           
+           if (is_valid) {
+             info[place.key] = "is_valid_move"
+           }
+           
+           return !!other // return true if blocked
+        }
+
+        // Once vectors (歩・桂・銀・金・王)
+        const once_vectors = soldier.once_vectors || []
+        once_vectors.forEach(vec => {
+           if (!vec) return
+           const vx = vec[0]
+           const vy = vec[1] * soldier.location.value_sign
+           check_and_add(soldier.place.x + vx, soldier.place.y + vy)
+        })
+        
+        // Repeat vectors (香・飛・角)
+        const repeat_vectors = soldier.repeat_vectors || []
+        repeat_vectors.forEach(vec => {
+            if (!vec) return
+            const vx = vec[0]
+            const vy = vec[1] * soldier.location.value_sign
+            let x = soldier.place.x + vx
+            let y = soldier.place.y + vy
+            while (true) {
+               const blocked = check_and_add(x, y)
+               if (blocked || Place.xy_invalid_p(x, y)) break
+               x += vx
+               y += vy
+            }
+        })
+      } else if (this.have_piece) {
+        const piece = this.have_piece
+        const board = this.xcontainer.board
+        const owner_location = this.have_piece_location || Location.fetch("black") // 駒箱なら先手として扱う
+        
+        let pawn_columns = {}
+        const is_pawn = (piece.key === "P")
+        if (is_pawn) {
+           for (let x=0; x<9; x++) {
+              if (board.pawn_exist_by_x(x, owner_location)) {
+                 pawn_columns[x] = true
+              }
+           }
+        }
+        
+        const force_promote_length = piece.piece_vector.force_promote_length
+
+        for (let x=0; x<9; x++) {
+          if (is_pawn && pawn_columns[x]) continue // 二歩
+          
+          for (let y=0; y<9; y++) {
+             const place = Place.fetch([x,y])
+             if (board.lookup(place)) continue // 駒がある
+             
+             // 行き所のない駒
+             let top_spaces = (owner_location.key === "black") ? y : (8 - y)
+             if (force_promote_length != null) {
+                if (top_spaces <= force_promote_length) continue
+             }
+             
+             // 王手放置判定
+             if (this.sp_illegal_validate) {
+                const temp_soldier = new Soldier({
+                   piece: piece,
+                   place: place,
+                   promoted: false,
+                   location: owner_location
+                })
+                if (board.puton_then_king_capture_p(temp_soldier, place)) {
+                   continue
+                }
+             }
+             
+             info[place.key] = "is_valid_move"
+          }
+        }
+      }
+      return info
     },
 
     root_container_id()    { return ["sp", Math.random().toString(36).slice(2)].join("-") },

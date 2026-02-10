@@ -6,7 +6,7 @@
   // 現在は v-sp-disable-interactions の影響を MainBoard に限定して @click を使うようにしている
   .OverlayNavigationItem.previous(         @click.stop.prevent="TheSp.api_turn_add(-1, {interactive: $event})")
   .OverlayNavigationItem.next(             @click.stop.prevent="TheSp.api_turn_add(+1, {interactive: $event})")
-  .OverlayNavigationItem.flip_trigger_cell(@click.stop.prevent="TheSp.viewpoint_flip_handle")
+
 </template>
 
 <script>

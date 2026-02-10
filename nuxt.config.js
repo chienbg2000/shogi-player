@@ -56,19 +56,19 @@ export default {
       { hid: "description", name: "description", content: SITE_DESC },
 
       ////////////////////////////////////////////////////////////////////////////////
-      { hid: "og:site_name",    property: "og:site_name",    content: process.env.APP_NAME                             },
-      { hid: "og:type",         property: "og:type",         content: "website"                                        },
-      { hid: "og:url",          property: "og:url",          content: process.env.MY_SITE_URL                          }, // これいるのか？
-      { hid: "og:title",        property: "og:title",        content: process.env.APP_NAME                             },
-      { hid: "og:description",  property: "og:description",  content: SITE_DESC                                        },
-      { hid: "og:image",        property: "og:image",        content: process.env.MY_NUXT_URL + "/ogp/application.png" },
-      { hid: "twitter:card",    property: "twitter:card",    content: "summary_large_image"                            }, // summary or summary_large_image
-      { hid: "twitter:site",    property: "twitter:site",    content: "@sgkinakomochi"                                 }, // これいるのか？
-      { hid: "twitter:creator", property: "twitter:creator", content: "@sgkinakomochi"                                 }, // これいるのか？
+      { hid: "og:site_name", property: "og:site_name", content: process.env.APP_NAME },
+      { hid: "og:type", property: "og:type", content: "website" },
+      { hid: "og:url", property: "og:url", content: process.env.MY_SITE_URL }, // これいるのか？
+      { hid: "og:title", property: "og:title", content: process.env.APP_NAME },
+      { hid: "og:description", property: "og:description", content: SITE_DESC },
+      { hid: "og:image", property: "og:image", content: process.env.MY_NUXT_URL + "/ogp/application.png" },
+      { hid: "twitter:card", property: "twitter:card", content: "summary_large_image" }, // summary or summary_large_image
+      { hid: "twitter:site", property: "twitter:site", content: "@sgkinakomochi" }, // これいるのか？
+      { hid: "twitter:creator", property: "twitter:creator", content: "@sgkinakomochi" }, // これいるのか？
     ],
     link: [
-      { hid: "icon",             rel: "icon", type: "image/x-icon", href: "/favicon.ico"          },
-      { hid: "apple-touch-icon", rel: "apple-touch-icon",           href: "/apple-touch-icon.png" },
+      { hid: "icon", rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+      { hid: "apple-touch-icon", rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
     // base: { href: "http://0.0.0.0:3000" },
   },
@@ -216,15 +216,21 @@ export default {
       sass: {
         // implementation: require('node-sass'),
         implementation: require('sass'),
+        sassOptions: {
+          quietDeps: true,
+        },
       },
       scss: {
         // implementation: require('node-sass'),
         implementation: require('sass'),
+        sassOptions: {
+          quietDeps: true,
+        },
       },
 
     },
 
-    extend (config, ctx) {
+    extend(config, ctx) {
       config.module.rules.push({
         test: /\.(ogg|mp3|wav|mpe?g)$/i,
         loader: "file-loader",

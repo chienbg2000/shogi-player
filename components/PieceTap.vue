@@ -245,4 +245,21 @@ export default {
     .PieceObject
       width:  80%
       height: 80%
+
+  // 王手演出
+  .PieceTap
+    &.is_checking_piece,
+    &.is_checked_king
+      .PieceTapBG
+        // box-shadow: inset 0 0 0 2px hsla(0, 100%, 50%, 0.8) // 枠線は不要と言われたので削除
+        background-color: hsla(0, 100%, 50%, 0.4)
+
+    &.is_check_path
+      .PieceTapBG
+        background-color: hsla(0, 100%, 50%, 0.2)
+
+    &.is_valid_move
+      .PieceTapBG
+        background-color: hsla(200, 100%, 50%, 0.5)
+        // cursor: pointer // PieceTap already has pointer on hover
 </style>

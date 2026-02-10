@@ -38,6 +38,7 @@
     "japanese-chess"
   ],
   "scripts": {
+    "dev": "nuxt",
     "test": "jest"
   },
   "dependencies": {
